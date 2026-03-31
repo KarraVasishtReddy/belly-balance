@@ -1,274 +1,118 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balance Tracker Pro</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-50 min-h-screen p-6 font-sans">
+import React, { useState, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { Camera, CameraType } from 'expo-camera';
 
-    <div class="max-w-3xl mx-auto space-y-6">
-        
-        <header class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-slate-800">Balance Tracker</h1>
-                <p class="text-slate-500 text-sm">Optimize your cellular health</p>
-            </div>
-            <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm">
-                Upgrade to Premium
-            </button>
-        </header>
+export default function AntioxidantTracker() {
+  const [hasPermission, setHasPermission] = Camera.useCameraPermissions();
+  const [loading, setLoading] = useState(false);
+  const cameraRef = useRef(null);
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
-                <div>
-                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Cellular Shield</h2>
-                    
-                    <div class="flex items-center justify-between mb-2 text-sm">
-                        <span class="text-green-600 font-medium">Antioxidants</span>
-                        <span class="text-red-500 font-medium">Oxidants</span>
-                    </div>
-                    
-                    <div class="w-full bg-red-100 rounded-full h-4 flex overflow-hidden mb-4">
-                        <div id="progress-bar" class="bg-green-500 h-4 transition-all duration-700 ease-out" style="width: 50%"></div>
-                    </div>
-                </div>
+  // STEP 1: Capture the Image
+  const takePicture = async () => {
+    if (cameraRef.current) {
+      setLoading(true);
+      const photo = await cameraRef.current.takePictureAsync({ base64: true });
+      
+      // Pass the photo to our recognition function
+      identifyFood(photo.base64);
+    }
+  };
 
-                <div class="mt-2 border-t border-slate-50 pt-4">
-                    <p class="text-xs text-slate-500 mb-1">Current State</p>
-                    <p id="shield-status" class="text-xl font-bold text-slate-700">Awaiting Data...</p>
-                    <p id="net-status" class="text-sm font-medium mt-1 text-slate-400">Net: 0 Units</p>
-                </div>
-            </section>
+  // STEP 2: Identify the Food (Simulating a Vision API)
+  const identifyFood = async (base64Image) => {
+    try {
+      /* * In a real app, you would send the base64Image to Google Cloud Vision 
+       * or OpenAI Vision API here. 
+       * const response = await fetch('YOUR_VISION_API_URL', { body: base64Image... })
+       */
+      
+      // Simulating an API response that detected French Fries
+      const detectedFood = { 
+        name: "French Fries", 
+        preparationMethod: "fried" 
+      };
+      
+      calculateOxidantScore(detectedFood);
+    } catch (error) {
+      Alert.alert("Error", "Could not identify food.");
+      setLoading(false);
+    }
+  };
 
-            <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Gut Diversity (Weekly)</h2>
-                
-                <div class="flex items-end gap-2 mb-2">
-                    <span id="unique-plants" class="text-4xl font-extrabold text-indigo-600">0</span>
-                    <span class="text-slate-500 font-medium pb-1">/ 30 plants</span>
-                </div>
-                
-                <p class="text-sm text-slate-500 mb-4">Aim for 30 different plant types a week for an optimized microbiome.</p>
+  // STEP 3: Calculate Oxidant Score & Check Deficit
+  const calculateOxidantScore = (foodItem) => {
+    let oxidantScore = 0;
 
-                <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                    <div id="plant-progress" class="bg-indigo-500 h-2 transition-all duration-700 ease-out" style="width: 0%"></div>
-                </div>
-<input type="file" accept="image/*" capture="environment" id="camera-input" class="hidden" onchange="processLiveImage(event)">
-        
-        <label for="camera-input" id="upload-btn" class="w-full bg-slate-800 hover:bg-slate-900 text-white flex items-center justify-center py-4 rounded-xl font-semibold transition-colors shadow-md cursor-pointer">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            Open Camera & Scan Meal
-        </label>
-                
-            </section>
-        </div>
+    // Basic logic: if it's fried, it has a high oxidative load
+    if (foodItem.preparationMethod === "fried") {
+      oxidantScore = 85; 
+    } else {
+      oxidantScore = 10; // e.g., steamed veggies
+    }
 
-        <button 
-            id="upload-btn"
-            onclick="handlePhotoUpload()"
-            class="w-full bg-slate-800 hover:bg-slate-900 text-white flex items-center justify-center py-4 rounded-xl font-semibold transition-colors shadow-md"
-        >
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-            Scan Meal with AI
-        </button>
+    if (oxidantScore > 50) {
+      fetchBalancingFoods(foodItem.name);
+    } else {
+      setLoading(false);
+      Alert.alert("Great Choice!", "This meal is balanced and low in oxidants.");
+    }
+  };
 
-        <section class="pt-4">
-            <h3 class="text-lg font-bold text-slate-800 mb-4">Today's Meals</h3>
-            <div id="log-list" class="space-y-4">
-                <p id="empty-state" class="text-slate-400 text-center py-10 border-2 border-dashed border-slate-200 rounded-2xl">Your daily log is empty.<br>Scan a meal to begin tracking.</p>
-            </div>
-        </section>
+  // STEP 4: Fetch Recommendations & Send Alert
+  const fetchBalancingFoods = (foodName) => {
+    /* * Here you would query your Supabase database for high ORAC 
+     * (Oxygen Radical Absorbance Capacity) foods.
+     */
+    const recommendations = ["Blueberries", "Green Tea", "Kiwi"];
+    
+    setLoading(false);
+    
+    // Trigger the UI Alert to the user
+    Alert.alert(
+      "Oxidative Load Detected ⚠️",
+      `You just had ${foodName}! To neutralize oxidative stress and balance your stomach, try having a side of ${recommendations[0]} or a cup of ${recommendations[1]} soon.`,
+      [{ text: "Got it!" }]
+    );
+  };
 
-    </div>
+  // --- UI Render ---
+  if (!hasPermission?.granted) {
+    return <Text style={styles.text}>Requesting camera permission...</Text>;
+  }
 
-    <script>
-        // State
-        let logs = [];
-        let isUploading = false;
-        // Simulating that the user has already eaten some plants earlier in the week
-        let baseWeeklyPlants = new Set(['oats', 'almonds', 'banana']); 
+  return (
+    <View style={styles.container}>
+      <Camera style={styles.camera} type={CameraType.back} ref={cameraRef}>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={takePicture} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.text}> Analyze Meal </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </Camera>
+    </View>
+  );
+}
 
-        // DOM Elements
-        const uploadBtn = document.getElementById('upload-btn');
-        const logList = document.getElementById('log-list');
-        const emptyState = document.getElementById('empty-state');
-        const progressBar = document.getElementById('progress-bar');
-        const netStatus = document.getElementById('net-status');
-        const shieldStatus = document.getElementById('shield-status');
-        const uniquePlantsEl = document.getElementById('unique-plants');
-        const plantProgressEl = document.getElementById('plant-progress');
-
-        // Update the UI based on data
-        function updateDashboard() {function processLiveImage(event) {
-            const file = event.target.files[0];
-            if (!file || isUploading) return;
-
-            isUploading = true;
-            
-            // 1. Update UI to show loading state
-            const uploadBtn = document.getElementById('upload-btn');
-            const originalContent = uploadBtn.innerHTML;
-            uploadBtn.innerHTML = `
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                AI is analyzing your food...
-            `;
-            uploadBtn.classList.add('opacity-80', 'cursor-not-allowed');
-
-            // 2. Read the image file and convert to Base64
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64Image = e.target.result;
-                
-                // --- THIS IS WHERE THE MAGIC HAPPENS IN PRODUCTION ---
-                // You would send 'base64Image' to your n8n webhook or directly to a Vision AI API here.
-                // fetch('https://your-n8n-webhook-url.com', { method: 'POST', body: JSON.stringify({ image: base64Image }) })
-                // -----------------------------------------------------
-
-                // 3. For now, simulate the AI taking 2 seconds to respond with data
-                setTimeout(() => {
-                    const response = mockResponses[clickCount % mockResponses.length];
-                    logs.push({...response, id: Date.now()}); 
-                    clickCount++;
-                    
-                    // Reset UI
-                    isUploading = false;
-                    uploadBtn.innerHTML = originalContent;
-                    uploadBtn.classList.remove('opacity-80', 'cursor-not-allowed');
-                    
-                    updateDashboard();
-                }, 2500);
-            };
-            
-            reader.readAsDataURL(file);
-        }
-            // 1. Calculate Totals
-            const totalAntioxidants = logs.reduce((sum, log) => sum + log.antioxidants, 0);
-            const totalOxidativeLoad = logs.reduce((sum, log) => sum + log.oxidativeLoad, 0);
-            const netBalance = totalAntioxidants - totalOxidativeLoad;
-
-            // 2. Calculate Unique Plants
-            let currentPlants = new Set(baseWeeklyPlants);
-            logs.forEach(log => {
-                log.plants.forEach(plant => currentPlants.add(plant.toLowerCase()));
-            });
-            const plantCount = currentPlants.size;
-
-            // 3. Update Visuals - Progress Bar
-            let percentage = 50; 
-            if (totalAntioxidants > 0 || totalOxidativeLoad > 0) {
-                percentage = (totalAntioxidants / (totalAntioxidants + totalOxidativeLoad)) * 100;
-                percentage = Math.max(5, Math.min(95, percentage)); 
-            }
-            progressBar.style.width = `${percentage}%`;
-
-            // 4. Update Net Status & Shield Text
-            netStatus.textContent = `Net: ${netBalance >= 0 ? '+' : ''}${netBalance} AOX`;
-            
-            if (logs.length === 0) {
-                shieldStatus.textContent = "Neutral";
-                shieldStatus.className = "text-xl font-bold text-slate-500";
-            } else if (percentage >= 65) {
-                shieldStatus.textContent = "Protected 🛡️";
-                shieldStatus.className = "text-xl font-bold text-green-600";
-            } else if (percentage >= 40) {
-                shieldStatus.textContent = "Vulnerable ⚠️";
-                shieldStatus.className = "text-xl font-bold text-yellow-500";
-            } else {
-                shieldStatus.textContent = "Oxidative Stress 🚨";
-                shieldStatus.className = "text-xl font-bold text-red-600";
-            }
-
-            // 5. Update Gut Diversity Tracker
-            uniquePlantsEl.textContent = plantCount;
-            plantProgressEl.style.width = `${Math.min(100, (plantCount / 30) * 100)}%`;
-
-            // 6. Render Logs
-            if (logs.length > 0) {
-                if (emptyState) emptyState.style.display = 'none';
-                logList.innerHTML = ''; // Clear current
-                
-                // Reverse so newest is on top
-                [...logs].reverse().forEach(log => {
-                    const plantTags = log.plants.map(p => 
-                        `<span class="inline-block bg-indigo-50 text-indigo-600 text-xs px-2 py-1 rounded-md font-medium mr-1 mt-2">${p}</span>`
-                    ).join('');
-
-                    const logElement = document.createElement('div');
-                    logElement.className = "bg-white p-5 rounded-xl shadow-sm border border-slate-100";
-                    logElement.innerHTML = `
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <h4 class="font-bold text-slate-800">${log.name}</h4>
-                                <p class="text-sm text-slate-500 mt-1">${log.calories} kcal</p>
-                                <div class="mt-1">${plantTags}</div>
-                            </div>
-                            <div class="text-right bg-slate-50 p-2 rounded-lg border border-slate-100">
-                                <p class="text-sm text-green-600 font-bold">+${log.antioxidants} <span class="text-xs font-normal">AOX</span></p>
-                                <p class="text-sm text-red-500 font-bold mt-1">-${log.oxidativeLoad} <span class="text-xs font-normal">OXL</span></p>
-                            </div>
-                        </div>
-                    `;
-                    logList.appendChild(logElement);
-                });
-            }
-        }
-
-        // Mock AI Responses to cycle through
-        const mockResponses = [
-            {
-                id: 1,
-                name: "Blueberry Spinach Smoothie",
-                antioxidants: 8500,
-                oxidativeLoad: 50,
-                calories: 320,
-                plants: ["Blueberries", "Spinach", "Chia Seeds"]
-            },
-            {
-                id: 2,
-                name: "Fried Chicken Sandwich",
-                antioxidants: 120,
-                oxidativeLoad: 6500,
-                calories: 850,
-                plants: ["Wheat", "Pickle"]
-            }
-        ];
-        let clickCount = 0;
-
-        function handlePhotoUpload() {
-            if (isUploading) return;
-            isUploading = true;
-            
-            // Visual loading state
-            uploadBtn.innerHTML = `
-                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                Processing Image...
-            `;
-            uploadBtn.classList.add('opacity-80', 'cursor-not-allowed');
-
-            setTimeout(() => {
-                // Get next mock response
-                const response = mockResponses[clickCount % mockResponses.length];
-                logs.push({...response, id: Date.now()}); // Ensure unique ID
-                clickCount++;
-                
-                // Reset button
-                isUploading = false;
-                uploadBtn.innerHTML = `
-                 <script>
-  lucide.createIcons();
-</script>
-                `;
-                uploadBtn.classList.remove('opacity-80', 'cursor-not-allowed');
-                
-                updateDashboard();
-            }, 1500);
-        }
-
-        // Initialize
-        updateDashboard();
-    </script>
-</body>
-</html>
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center' },
+  camera: { flex: 1 },
+  buttonContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    backgroundColor: 'transparent',
+    margin: 64,
+  },
+  button: {
+    flex: 1,
+    alignSelf: 'flex-end',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 15,
+    borderRadius: 10,
+  },
+  text: { fontSize: 24, fontWeight: 'bold', color: 'white' },
+});
