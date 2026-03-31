@@ -3,158 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Balance Tracker</title>
+    <title>Balance Tracker Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 min-h-screen p-6 font-sans">
+<body class="bg-slate-50 min-h-screen p-6 font-sans">
 
-    <div class="max-w-3xl mx-auto space-y-8">
+    <div class="max-w-3xl mx-auto space-y-6">
         
-        <header class="flex justify-between items-center">
-            <h1 class="text-3xl font-bold text-slate-800">Balance Tracker</h1>
-            <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-800">Balance Tracker</h1>
+                <p class="text-slate-500 text-sm">Optimize your cellular health</p>
+            </div>
+            <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition-colors text-sm">
                 Upgrade to Premium
             </button>
         </header>
 
-        <section class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-            <h2 class="text-lg font-semibold text-gray-700 mb-4">Today's Cellular Balance</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            <div class="flex items-center justify-between mb-2 text-sm">
-                <span class="flex items-center text-green-600 font-medium">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                    Antioxidants
-                </span>
-                <span class="flex items-center text-red-500 font-medium">
-                    Oxidative Load
-                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z"></path></svg>
-                </span>
-            </div>
-            
-            <div class="w-full bg-red-100 rounded-full h-6 flex overflow-hidden">
-                <div id="progress-bar" class="bg-green-500 h-6 transition-all duration-500" style="width: 50%"></div>
-            </div>
+            <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Cellular Shield</h2>
+                    
+                    <div class="flex items-center justify-between mb-2 text-sm">
+                        <span class="text-green-600 font-medium">Antioxidants</span>
+                        <span class="text-red-500 font-medium">Oxidants</span>
+                    </div>
+                    
+                    <div class="w-full bg-red-100 rounded-full h-4 flex overflow-hidden mb-4">
+                        <div id="progress-bar" class="bg-green-500 h-4 transition-all duration-700 ease-out" style="width: 50%"></div>
+                    </div>
+                </div>
 
-            <div class="mt-4 text-center">
-                <p class="text-sm text-gray-500">Net Status</p>
-                <p id="net-status" class="text-2xl font-bold text-gray-400">0 Units</p>
-            </div>
-        </section>
+                <div class="mt-2 border-t border-slate-50 pt-4">
+                    <p class="text-xs text-slate-500 mb-1">Current State</p>
+                    <p id="shield-status" class="text-xl font-bold text-slate-700">Awaiting Data...</p>
+                    <p id="net-status" class="text-sm font-medium mt-1 text-slate-400">Net: 0 Units</p>
+                </div>
+            </section>
 
-        <div class="flex gap-4">
-            <button 
-                id="upload-btn"
-                onclick="handlePhotoUpload()"
-                class="flex-1 bg-green-600 hover:bg-green-700 text-white flex items-center justify-center py-4 rounded-xl font-semibold transition-colors"
-            >
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                Scan Food Photo
-            </button>
-        </div>
-
-        <section>
-            <h3 class="text-xl font-bold text-gray-800 mb-4">Today's Log</h3>
-            <div id="log-list" class="space-y-3">
-                <p id="empty-state" class="text-gray-500 text-center py-8">No food logged yet today. Snap a photo!</p>
-            </div>
-        </section>
-
-    </div>
-
-    <script>
-        // State
-        let logs = [];
-        let isUploading = false;
-
-        // DOM Elements
-        const uploadBtn = document.getElementById('upload-btn');
-        const logList = document.getElementById('log-list');
-        const emptyState = document.getElementById('empty-state');
-        const progressBar = document.getElementById('progress-bar');
-        const netStatus = document.getElementById('net-status');
-
-        // Update the UI based on data
-        function updateDashboard() {
-            // Calculate Totals
-            const totalAntioxidants = logs.reduce((sum, log) => sum + log.antioxidants, 0);
-            const totalOxidativeLoad = logs.reduce((sum, log) => sum + log.oxidativeLoad, 0);
-            const netBalance = totalAntioxidants - totalOxidativeLoad;
-
-            // Update Progress Bar
-            let percentage = 50; // Default middle ground
-            if (totalAntioxidants > 0 || totalOxidativeLoad > 0) {
-                percentage = (totalAntioxidants / (totalAntioxidants + totalOxidativeLoad)) * 100;
-                // Keep it visible between 10% and 90% so neither side completely disappears
-                percentage = Math.max(10, Math.min(90, percentage)); 
-            }
-            progressBar.style.width = `${percentage}%`;
-
-            // Update Net Status Text
-            netStatus.textContent = `${netBalance >= 0 ? '+' : ''}${netBalance} Units`;
-            netStatus.className = `text-2xl font-bold ${netBalance >= 0 ? 'text-green-600' : 'text-red-500'}`;
-
-            // Render Logs
-            if (logs.length > 0) {
-                if (emptyState) emptyState.style.display = 'none';
+            <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Gut Diversity (Weekly)</h2>
                 
-                // Clear current list (except empty state which is hidden)
-                logList.innerHTML = '';
-                
-                // Add all logs
-                logs.forEach(log => {
-                    const logElement = document.createElement('div');
-                    logElement.className = "bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center";
-                    logElement.innerHTML = `
-                        <div>
-                            <h4 class="font-semibold text-gray-800">${log.name}</h4>
-                            <p class="text-sm text-gray-500">${log.calories} kcal</p>
-                        </div>
-                        <div class="text-right">
-                            <p class="text-sm text-green-600 font-medium">+${log.antioxidants} AOX</p>
-                            <p class="text-sm text-red-500 font-medium">-${log.oxidativeLoad} OXL</p>
-                        </div>
-                    `;
-                    logList.appendChild(logElement);
-                });
-            }
-        }
-
-        // Mock function to simulate AI Photo processing
-        function handlePhotoUpload() {
-            if (isUploading) return;
-            
-            isUploading = true;
-            uploadBtn.innerHTML = 'Analyzing via AI...';
-            uploadBtn.classList.replace('bg-green-600', 'bg-gray-400');
-            uploadBtn.classList.remove('hover:bg-green-700');
-
-            // Simulate a 2-second wait for the n8n API to respond
-            setTimeout(() => {
-                const mockAiResponse = {
-                    id: Date.now(),
-                    name: "Processed Burger & Fries",
-                    antioxidants: 150,
-                    oxidativeLoad: 4500,
-                    calories: 950,
-                };
-                
-                logs.push(mockAiResponse);
-                
-                // Reset button
-                isUploading = false;
-                uploadBtn.innerHTML = `
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    Scan Food Photo
-                `;
-                uploadBtn.classList.replace('bg-gray-400', 'bg-green-600');
-                uploadBtn.classList.add('hover:bg-green-700');
-                
-                updateDashboard();
-            }, 2000);
-        }
-
-        // Initial render
-        updateDashboard();
-    </script>
-</body>
-</html>
+                <div class="flex items-end gap-2 mb-2">
+                    <span id="unique-plants" class="text-4xl font-extrabold text-indigo-600">0</span>
+                    <span class="text-slate-500 font-medium pb-1">/ 30 plants</span>
