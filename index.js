@@ -12,6 +12,25 @@ loadModel();
 
 // 2. Function to analyze the food image when the user snaps a photo
 async function analyzeFood(imageElement) {
+  <input type="file" accept="image/*" capture="environment" id="cameraInput">
+<img id="foodPreview" style="display:none;" />
+<div id="result"></div>
+
+<script>
+document.getElementById('cameraInput').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const imgElement = document.getElementById('foodPreview');
+        imgElement.src = URL.createObjectURL(file);
+        
+        // Wait for the image to load on screen, then analyze it
+        imgElement.onload = () => {
+            document.getElementById('result').innerHTML = "⚙️ Analyzing food profile...";
+            analyzeFood(imgElement); 
+        }
+    }
+});
+</script>
     if (!model) {
         alert("Model is still loading, please wait a second.");
         return;
