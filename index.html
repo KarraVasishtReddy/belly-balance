@@ -1,142 +1,54 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BellyBalance Web App</title>
-    <style>
-        /* Modern, mobile-friendly styling */
-        :root {
-            --primary: #2e7d32;
-            --bg-color: #f4f9f4;
-            --card-bg: #ffffff;
-            --text-main: #333333;
-        }
+// 1. Load the model from your GitHub repository
+let model;
+async function loadModel() {
+    console.log("Loading model...");
+    // Point this to the folder you uploaded to GitHub
+    model = await tf.loadLayersModel('./web_model/model.json'); 
+    console.log("Model loaded successfully!");
+}
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+// Call this function when the page loads
+loadModel();
 
-        .container {
-            max-width: 500px;
-            width: 100%;
-        }
+// 2. Function to analyze the food image when the user snaps a photo
+async function analyzeFood(imageElement) {
+    if (!model) {
+        alert("Model is still loading, please wait a second.");
+        return;
+    }
 
-        h1 { text-align: center; color: var(--primary); }
-        p { line-height: 1.5; }
+    // Convert the HTML image element into a format the model understands (a Tensor)
+    let tensor = tf.browser.fromPixels(imageElement)
+        .resizeNearestNeighbor([224, 224]) // Resize to whatever your model was trained on
+        .toFloat()
+        .expandDims(); // Add batch dimension
 
-        .card {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            margin-bottom: 20px;
-        }
+    // Normalize the image (if you normalized during training, e.g., dividing by 255)
+    tensor = tensor.div(255.0);
 
-        .btn {
-            background: var(--primary);
-            color: white;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            text-align: center;
-            display: block;
-            box-sizing: border-box;
-        }
+    // 3. Run the prediction
+    const prediction = await model.predict(tensor).data();
+    
+    // Assuming prediction[0] is the probability of a "Heavy/Fatty" meal
+    const heavyMealProbability = prediction[0];
 
-        /* Hide the ugly default file input */
-        input[type="file"] { display: none; }
+    displayRecommendation(heavyMealProbability);
+}
 
-        /* The Result Alert Box (Hidden by default) */
-        #resultBox {
-            display: none;
-            background-color: #fff3e0;
-            border-left: 5px solid #ff9800;
-            padding: 15px;
-            margin-top: 15px;
-            border-radius: 4px;
-        }
+// 4. Map the model's math to your UI logic
+function displayRecommendation(probability) {
+    const resultDiv = document.getElementById('result'); // Your UI container
 
-        .loader {
-            display: none;
-            text-align: center;
-            margin-top: 15px;
-            font-weight: bold;
-            color: var(--primary);
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        <h1>🍍 BellyBalance</h1>
-        <p style="text-align: center;">Snap your food, balance your gut.</p>
-
-        <div class="card">
-            <h2>1. Log Your Meal</h2>
-            <p>Take a picture of your plate to check if you need a digestion boost.</p>
-            
-            <label for="cameraInput" class="btn">
-                📸 Open Camera & Snap
-            </label>
-            <input type="file" id="cameraInput" accept="image/*" capture="environment">
-            
-            <div id="loadingText" class="loader">⚙️ Analyzing food profile...</div>
-            
-            <div id="resultBox">
-                <strong>⚠️ Heavy Meal Detected!</strong><br><br>
-                Your body is processing high amounts of fat. <br><br>
-                <strong>Action:</strong> Eat a slice of Papaya or Pineapple in 30 minutes to aid digestion.
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>2. Digestion Relief Hub</h2>
-            <ul style="padding-left: 20px;">
-                <li><strong>🧘 Vajrasana (Thunderbolt Pose):</strong> Sit on your heels right after eating. Increases blood flow to the stomach.</li>
-                <br>
-                <li><strong>✋ Zusanli (Acupressure):</strong> Massage the point 4 fingers below your kneecap for 2 minutes to relieve bloating.</li>
-                <br>
-                <li><strong>🧘 Pawanmuktasana:</strong> Lie on your back and hug your knees to your chest. Great for releasing trapped gas.</li>
-            </ul>
-        </div>
-    </div>
-
-    <script>
-        const cameraInput = document.getElementById('cameraInput');
-        const loadingText = document.getElementById('loadingText');
-        const resultBox = document.getElementById('resultBox');
-
-        // When the user takes a photo, trigger this function
-        cameraInput.addEventListener('change', function(event) {
-            // Check if a file was actually selected/snapped
-            if (event.target.files.length > 0) {
-                
-                // 1. Hide the result box if it was open, and show the loading text
-                resultBox.style.display = "none";
-                loadingText.style.display = "block";
-
-                // 2. Simulate AI processing time (3 seconds)
-                setTimeout(() => {
-                    // Hide loading text
-                    loadingText.style.display = "none";
-                    // Show the recommendation alert
-                    resultBox.style.display = "block";
-                }, 3000);
-            }
-        });
-    </script>
-
-</body>
-</html>
+    if (probability > 0.7) { // 70% confidence it's heavy
+        resultDiv.innerHTML = `
+            <h3>⚠️ Heavy Meal Detected!</h3>
+            <p>Your body is processing high amounts of fat.</p>
+            <p><strong>Action:</strong> Eat a slice of Papaya or Pineapple in 30 minutes. Their natural enzymes (papain and bromelain) will break down these complex lipids.</p>
+        `;
+    } else {
+        resultDiv.innerHTML = `
+            <h3>✅ Balanced Meal!</h3>
+            <p>Looks like a light, easily digestible meal. Great job!</p>
+        `;
+    }
+}
