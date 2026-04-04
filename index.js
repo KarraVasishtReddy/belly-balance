@@ -1,73 +1,62 @@
-// 1. Load the model from your GitHub repository
-let model;
-async function loadModel() {
-    console.log("Loading model...");
-    // Point this to the folder you uploaded to GitHub
-    model = await tf.loadLayersModel('./web_model/model.json'); 
-    console.log("Model loaded successfully!");
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Live Camera Stream</title>
+</head>
+<body>
 
-// Call this function when the page loads
-loadModel();
-
-// 2. Function to analyze the food image when the user snaps a photo
-async function analyzeFood(imageElement) {
-  <input type="file" accept="image/*" capture="environment" id="cameraInput">
-<img id="foodPreview" style="display:none;" />
-<div id="result"></div>
-
-<script>
-document.getElementById('cameraInput').addEventListener('change', function(event) {
-    const file = event.target.files[0];
-    if (file) {
-        const imgElement = document.getElementById('foodPreview');
-        imgElement.src = URL.createObjectURL(file);
-        
-        // Wait for the image to load on screen, then analyze it
-        imgElement.onload = () => {
-            document.getElementById('result').innerHTML = "⚙️ Analyzing food profile...";
-            analyzeFood(imgElement); 
-        }
-    }
-});
-</script>
-    if (!model) {
-        alert("Model is still loading, please wait a second.");
-        return;
-    }
-
-    // Convert the HTML image element into a format the model understands (a Tensor)
-    let tensor = tf.browser.fromPixels(imageElement)
-        .resizeNearestNeighbor([224, 224]) // Resize to whatever your model was trained on
-        .toFloat()
-        .expandDims(); // Add batch dimension
-
-    // Normalize the image (if you normalized during training, e.g., dividing by 255)
-    tensor = tensor.div(255.0);
-
-    // 3. Run the prediction
-    const prediction = await model.predict(tensor).data();
+    <h2>Live Camera Feed</h2>
+    <video id="webcam" autoplay playsinline width="400" height="300" style="background: black;"></video>
+    <br>
+    <button id="captureBtn">Take Picture</button>
     
-    // Assuming prediction[0] is the probability of a "Heavy/Fatty" meal
-    const heavyMealProbability = prediction[0];
+    <canvas id="canvas" width="400" height="300" style="display:none;"></canvas>
+    
+    <h3>Captured Image:</h3>
+    <img id="photo" alt="Captured frame will appear here">
 
-    displayRecommendation(heavyMealProbability);
-}
+    <script>
+        const video = document.getElementById('webcam');
+        const canvas = document.getElementById('canvas');
+        const photo = document.getElementById('photo');
+        const captureBtn = document.getElementById('captureBtn');
 
-// 4. Map the model's math to your UI logic
-function displayRecommendation(probability) {
-    const resultDiv = document.getElementById('result'); // Your UI container
+        // 1. Request access to the user's camera
+        async function startCamera() {
+            try {
+                // You can change 'user' to 'environment' for the back camera on mobile
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: 'environment' } 
+                });
+                
+                // Attach the live stream to the video element
+                video.srcObject = stream;
+            } catch (err) {
+                console.error("Error accessing the camera: ", err);
+                alert("Could not access the camera. Please ensure permissions are granted.");
+            }
+        }
 
-    if (probability > 0.7) { // 70% confidence it's heavy
-        resultDiv.innerHTML = `
-            <h3>⚠️ Heavy Meal Detected!</h3>
-            <p>Your body is processing high amounts of fat.</p>
-            <p><strong>Action:</strong> Eat a slice of Papaya or Pineapple in 30 minutes. Their natural enzymes (papain and bromelain) will break down these complex lipids.</p>
-        `;
-    } else {
-        resultDiv.innerHTML = `
-            <h3>✅ Balanced Meal!</h3>
-            <p>Looks like a light, easily digestible meal. Great job!</p>
-        `;
-    }
-}
+        // 2. Start the camera when the page loads
+        startCamera();
+
+        // 3. Take a picture when the button is clicked
+        captureBtn.addEventListener('click', () => {
+            const context = canvas.getContext('2d');
+            
+            // Draw the current video frame onto the canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Convert the canvas drawing into an image data URL
+            const imageDataURL = canvas.toDataURL('image/png');
+            
+            // Display the captured image
+            photo.src = imageDataURL;
+            
+            // Note: If you are using an AI model, you can often pass the 'video' or 'canvas' element directly to the model instead of converting it to a URL!
+        });
+    </script>
+
+</body>
+</html>
