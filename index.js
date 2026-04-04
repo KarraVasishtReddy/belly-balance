@@ -1,62 +1,55 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Live Camera Stream</title>
-</head>
-<body>
+const express = require('express');
+const multer = require('multer');
+const { spawn } = require('child_process');
+const path = require('path');
 
-    <h2>Live Camera Feed</h2>
-    <video id="webcam" autoplay playsinline width="400" height="300" style="background: black;"></video>
-    <br>
-    <button id="captureBtn">Take Picture</button>
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Set up Multer to save uploaded photos to the 'uploads/' folder
+const upload = multer({ dest: 'uploads/' });
+
+// API Endpoint to handle the photo upload
+app.post('/api/analyze-meal', upload.single('foodPhoto'), (req, res) => {
     
-    <canvas id="canvas" width="400" height="300" style="display:none;"></canvas>
-    
-    <h3>Captured Image:</h3>
-    <img id="photo" alt="Captured frame will appear here">
+    // 1. Check if a file was actually uploaded
+    if (!req.file) {
+        return res.status(400).json({ error: "No photo uploaded." });
+    }
 
-    <script>
-        const video = document.getElementById('webcam');
-        const canvas = document.getElementById('canvas');
-        const photo = document.getElementById('photo');
-        const captureBtn = document.getElementById('captureBtn');
+    const imagePath = req.file.path;
+    console.log(`Received photo, saved at: ${imagePath}`);
 
-        // 1. Request access to the user's camera
-        async function startCamera() {
+    // 2. Spawn the Python process, passing the image path as an argument
+    const pythonProcess = spawn('python3', ['model.py', imagePath]);
+
+    let pythonOutput = '';
+
+    // 3. Listen for the data coming back from Python's 'print' statement
+    pythonProcess.stdout.on('data', (data) => {
+        pythonOutput += data.toString();
+    });
+
+    // 4. Handle errors if the Python script crashes
+    pythonProcess.stderr.on('data', (data) => {
+        console.error(`Python Error: ${data}`);
+    });
+
+    // 5. When Python is done, parse the JSON and send it back to the user's phone/browser
+    pythonProcess.on('close', (code) => {
+        if (code === 0) {
             try {
-                // You can change 'user' to 'environment' for the back camera on mobile
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'environment' } 
-                });
-                
-                // Attach the live stream to the video element
-                video.srcObject = stream;
-            } catch (err) {
-                console.error("Error accessing the camera: ", err);
-                alert("Could not access the camera. Please ensure permissions are granted.");
+                const finalResult = JSON.parse(pythonOutput);
+                res.json(finalResult);
+            } catch (error) {
+                res.status(500).json({ error: "Failed to parse Python output." });
             }
+        } else {
+            res.status(500).json({ error: "Python script failed to execute." });
         }
+    });
+});
 
-        // 2. Start the camera when the page loads
-        startCamera();
-
-        // 3. Take a picture when the button is clicked
-        captureBtn.addEventListener('click', () => {
-            const context = canvas.getContext('2d');
-            
-            // Draw the current video frame onto the canvas
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            // Convert the canvas drawing into an image data URL
-            const imageDataURL = canvas.toDataURL('image/png');
-            
-            // Display the captured image
-            photo.src = imageDataURL;
-            
-            // Note: If you are using an AI model, you can often pass the 'video' or 'canvas' element directly to the model instead of converting it to a URL!
-        });
-    </script>
-
-</body>
-</html>
+app.listen(port, () => {
+    console.log(`BellyBalance server running on port ${port}`);
+});
