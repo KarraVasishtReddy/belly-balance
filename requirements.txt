@@ -1,0 +1,12 @@
+# Core data handling (used in our earlier dataset script)
+pandas==2.1.4
+numpy==1.26.2
+
+# Image processing (required for opening and formatting the user's photo)
+Pillow==10.1.0
+
+# Machine Learning framework (if you use TensorFlow as discussed)
+tensorflow==2.15.0
+
+# Uncomment the line below if you decide to use YOLOv8 for food detection instead
+# ultralytics==8.0.228
